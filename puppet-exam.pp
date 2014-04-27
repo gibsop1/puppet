@@ -1,12 +1,15 @@
+# Paul Gibson - gibson.a.paul@gmail.com
+
 include nginx
 include git
 
-# Create webroot     
+# Create web root directory     
 file { "/var/www/":
     ensure => "directory",
     mode   => 755
 }
 
+# Clone git repo to web root
 git::repo{'puppetlabs':
  path   => '/var/www/',
  source => 'git://github.com/puppetlabs/exercise-webpage.git',
@@ -15,7 +18,7 @@ git::repo{'puppetlabs':
 
 }
 
-# Server config
+# Server config variable
 $puppet_exam_config = "server {
     listen       8000;
     server_name  localhost;
@@ -25,6 +28,8 @@ $puppet_exam_config = "server {
         root   /var/www;
         index  index.html index.htm;
     }
+
+    location ~ /\\.  { return 403; }
 
 
     error_page   500 502 503 504  /50x.html;
@@ -37,8 +42,9 @@ $puppet_exam_config = "server {
 }
 "
 
+# Copy server config variable to file
 file { "/etc/nginx/conf.d/puppet-exam.conf":
     ensure => present,
     content => "$puppet_exam_config",
+    notify  => Service["nginx"]
 }
-
