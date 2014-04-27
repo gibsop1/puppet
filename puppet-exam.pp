@@ -1,11 +1,5 @@
 include nginx
-
-nginx::resource::vhost { 'test.local:8000':
-  ensure       => present,
-  listen_port  => 8000,
-  server_name  => ['test'],
-  www_root     => '/var/www/'
-}
+include git
 
 # Create webroot     
 file { "/var/www/":
@@ -13,19 +7,38 @@ file { "/var/www/":
     mode   => 755
 }
 
-package { 'git':
-    ensure => "installed",
+git::repo{'puppetlabs':
+ path   => '/var/www/',
+ source => 'git://github.com/puppetlabs/exercise-webpage.git',
+ branch => 'master',
+ update => true,
+
 }
 
-vcsrepo { "/var/www/":
-  ensure => latest,
-  provider => git,
-  require  => [ Package["git"] ],
-  source => 'git://github.com/puppetlabs/exercise-webpage.git',
-  revision => 'master'
+# Server config
+$puppet_exam_config = "server {
+    listen       8000;
+    server_name  localhost;
+
+
+    location / {
+        root   /var/www;
+        index  index.html index.htm;
+    }
+
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+
+
+}
+"
+
+file { "/etc/nginx/conf.d/puppet-exam.conf":
+    ensure => present,
+    content => "$puppet_exam_config",
 }
 
-# Delete default nginx config
-# file { "/etc/nginx/conf.d/default.conf":
-#   ensure => absent,
-# }
