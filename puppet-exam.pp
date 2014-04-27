@@ -26,6 +26,6 @@ vcsrepo { "/var/www/":
 }
 
 # Delete default nginx config
-file { "/etc/nginx/conf.d/default.conf":
-  ensure => absent,
-}
+# file { "/etc/nginx/conf.d/default.conf":
+#   ensure => absent,
+# }
